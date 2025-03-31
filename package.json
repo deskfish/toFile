@@ -1,0 +1,14 @@
+{
+  "name": "totext",
+  "version": "1.0.0",
+  "description": "文字转二维码工具，支持长文本缓存",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "uuid": "^9.0.0"
+  }
+}

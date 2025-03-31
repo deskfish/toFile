@@ -1,0 +1,63 @@
+{
+  "productCode": "T5681",
+  "rootBranchNo": "0_1000_01121_01511_10201",
+  "recordCustomList": [
+    {
+      "custGender": "1",
+      "custCardType": "1",
+      "custIdentity": "1",
+      "custRiskLevel": "R5",
+      "custRatingRes": "R5",
+      "custName": "肉",
+      "custPhone": "17626009801",
+      "isSelfCus": "1",
+      "custCardId": "640221198909201225",
+      "custAge": "66",
+      "custOrder": 1,
+      "custId": "15044",
+      "id": "1",
+      "custType": "1"
+    }
+  ],
+  "customerId": "56408",
+  "channel": "2",
+  "recordBusinessList": [
+    {
+      "businessType": "paymentType",
+      "businessContent": "2"
+    },
+    {
+      "businessType": "paymentYear",
+      "businessContent": "3"
+    },
+    {
+      "businessType": "insureAmount",
+      "businessContent": "1000000"
+    },
+    {
+      "businessType": "insureNums",
+      "businessContent": "10"
+    },
+    {
+      "businessType": "insureYear",
+      "businessContent": "7"
+    },
+    {
+      "businessType": "insureEachPrice",
+      "businessContent": "100000"
+    },
+    {
+      "businessType": "insureStartDate",
+      "businessContent": "2024-08-06"
+    },
+    {
+      "businessType": "insureEndDate",
+      "businessContent": "2025-08-05"
+    }
+  ],
+  "custNum": "1",
+  "subType": 1,
+  "busType": "4",
+  "platFormType": "2",
+  "branchNo": "0_1000_01121_01511_10201"
+}

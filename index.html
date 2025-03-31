@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文字转二维码工具</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>文字转二维码</h1>
+            <p class="description">输入文字，生成二维码，扫描即可复制</p>
+            
+            <div class="input-group">
+                <textarea id="textInput" placeholder="请输入要转换的文字..."></textarea>
+                <button id="generateBtn">生成二维码</button>
+            </div>
+            
+            <div class="qrcode-container">
+                <div id="qrcode"></div>
+                <p id="scanTip" class="hidden">扫描二维码即可复制文字</p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

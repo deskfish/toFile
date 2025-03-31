@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>查看文本内容</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 500px;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .text-content {
+            margin-bottom: 25px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            word-break: break-all;
+            text-align: left;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .success-message {
+            color: #52c41a;
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .copy-button {
+            background-color: #1890ff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-bottom: 15px;
+        }
+        
+        .copy-button:hover {
+            background-color: #40a9ff;
+        }
+        
+        .loading {
+            color: #1890ff;
+            margin: 20px 0;
+        }
+        
+        .error {
+            color: #f5222d;
+            margin: 20px 0;
+        }
+        
+        .expire-info {
+            color: #999;
+            font-size: 14px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>文本内容</h1>
+            <div id="loading" class="loading">正在加载文本内容...</div>
+            <div id="error" class="error" style="display: none;"></div>
+            <div id="textContent" class="text-content" style="display: none;"></div>
+            <button id="copyBtn" class="copy-button" style="display: none;">复制文本</button>
+            <p id="successMessage" class="success-message">文本已成功复制到剪贴板！</p>
+            <p id="expireInfo" class="expire-info">文本内容将在7天后过期</p>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loadingElement = document.getElementById('loading');
+            const errorElement = document.getElementById('error');
+            const textContentElement = document.getElementById('textContent');
+            const copyBtn = document.getElementById('copyBtn');
+            const successMessage = document.getElementById('successMessage');
+            
+            // 从URL获取ID参数
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            
+            if (!id) {
+                showError('未找到有效的ID参数');
+                return;
+            }
+            
+            // 获取文本内容
+            fetchTextContent(id);
+            
+            // 为复制按钮添加点击事件
+            copyBtn.addEventListener('click', function() {
+                const text = textContentElement.textContent;
+                copyToClipboard(text);
+            });
+            
+            // 获取文本内容的函数
+            function fetchTextContent(id) {
+                // 获取当前域名和端口
+                const protocol = window.location.protocol;
+                const hostname = window.location.hostname;
+                const port = '3000'; // 使用服务器端口
+                
+                // 构建API URL
+                const apiUrl = `${protocol}//${hostname}:${port}/api/text/${id}`;
+                
+                fetch(apiUrl)
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(data => {
+                                throw new Error(data.error || '获取文本内容失败');
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.text) {
+                            // 显示文本内容
+                            textContentElement.textContent = data.text;
+                            textContentElement.style.display = 'block';
+                            copyBtn.style.display = 'block';
+                            loadingElement.style.display = 'none';
+                        } else {
+                            showError('获取的文本内容为空');
+                        }
+                    })
+                    .catch(error => {
+                        showError(error.message);
+                    });
+            }
+            
+            // 显示错误信息的函数
+            function showError(message) {
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+                loadingElement.style.display = 'none';
+            }
+            
+            // 复制到剪贴板的函数
+            function copyToClipboard(text) {
+                // 尝试使用现代API复制到剪贴板
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(text)
+                        .then(() => {
+                            showSuccessMessage();
+                        })
+                        .catch(err => {
+                            console.error('无法使用Clipboard API复制文本: ', err);
+                            fallbackCopyText(text);
+                        });
+                } else {
+                    // 使用传统方法作为后备
+                    fallbackCopyText(text);
+                }
+            }
+            
+            // 后备复制方法
+            function fallbackCopyText(text) {
+                try {
+                    // 创建一个临时的textarea元素
+                    const textArea = document.createElement('textarea');
+                    textArea.value = text;
+                    
+                    // 设置样式使其不可见
+                    textArea.style.position = 'fixed';
+                    textArea.style.left = '-999999px';
+                    textArea.style.top = '-999999px';
+                    document.body.appendChild(textArea);
+                    
+                    // 选择文本并复制
+                    textArea.focus();
+                    textArea.select();
+                    
+                    const successful = document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    
+                    if (successful) {
+                        showSuccessMessage();
+                    } else {
+                        alert('复制失败，请手动复制文本');
+                    }
+                } catch (err) {
+                    console.error('后备复制方法失败: ', err);
+                    alert('复制失败，请手动复制文本');
+                }
+            }
+            
+            // 显示成功消息的函数
+            function showSuccessMessage() {
+                // 改变按钮文字提示复制成功
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = '复制成功！';
+                copyBtn.style.backgroundColor = '#52c41a';
+                
+                // 显示成功消息
+                successMessage.style.display = 'block';
+                
+                // 3秒后恢复按钮和隐藏消息
+                setTimeout(function() {
+                    copyBtn.textContent = originalText;
+                    copyBtn.style.backgroundColor = '#1890ff';
+                    successMessage.style.display = 'none';
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+</html>
