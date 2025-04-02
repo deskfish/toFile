@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>查看文本内容</title>
+    <title>查看内容</title>
     <style>
         * {
             margin: 0;
@@ -18,7 +18,7 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            padding: 20px;
+            padding: 15px;
         }
         
         .container {
@@ -30,17 +30,18 @@
             background-color: white;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            padding: 30px;
+            padding: 20px;
             text-align: center;
         }
         
         h1 {
             color: #333;
             margin-bottom: 20px;
+            font-size: 1.5rem;
         }
         
         .text-content {
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             padding: 15px;
             border: 1px solid #ddd;
             border-radius: 8px;
@@ -49,28 +50,31 @@
             text-align: left;
             max-height: 300px;
             overflow-y: auto;
+            font-size: 1rem;
         }
         
-        .success-message {
-            color: #52c41a;
-            margin-top: 15px;
-            display: none;
-        }
-        
-        .copy-button {
+        .download-btn, .copy-button {
+            width: 100%;
+            padding: 12px;
             background-color: #1890ff;
             color: white;
             border: none;
-            border-radius: 4px;
-            padding: 10px 20px;
-            font-size: 16px;
+            border-radius: 8px;
+            font-size: 1rem;
             cursor: pointer;
             transition: background-color 0.3s;
             margin-bottom: 15px;
         }
         
-        .copy-button:hover {
+        .download-btn:hover, .copy-button:hover {
             background-color: #40a9ff;
+        }
+        
+        .success-message {
+            color: #52c41a;
+            margin-top: 10px;
+            display: none;
+            font-size: 0.9rem;
         }
         
         .loading {
@@ -85,21 +89,56 @@
         
         .expire-info {
             color: #999;
-            font-size: 14px;
-            margin-top: 15px;
+            font-size: 0.8rem;
+            margin-top: 10px;
+        }
+
+        /* 移动端优化 */
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .card {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.3rem;
+                margin-bottom: 15px;
+            }
+            
+            .text-content {
+                padding: 10px;
+                font-size: 0.95rem;
+                max-height: 250px;
+            }
+            
+            .download-btn, .copy-button {
+                padding: 10px;
+                font-size: 0.95rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="card">
-            <h1>文本内容</h1>
-            <div id="loading" class="loading">正在加载文本内容...</div>
-            <div id="error" class="error" style="display: none;"></div>
-            <div id="textContent" class="text-content" style="display: none;"></div>
-            <button id="copyBtn" class="copy-button" style="display: none;">复制文本</button>
-            <p id="successMessage" class="success-message">文本已成功复制到剪贴板！</p>
-            <p id="expireInfo" class="expire-info">文本内容将在7天后过期</p>
+            <h1 id="title">内容</h1>
+            <div id="content-container">
+                <div id="loading" class="loading">正在加载...</div>
+                <div id="error" class="error" style="display: none;"></div>
+                <div id="text-container" style="display: none;">
+                    <div id="textContent" class="text-content"></div>
+                    <button id="copyBtn" class="copy-button">复制文本</button>
+                    <p id="successMessage" class="success-message">文本已成功复制到剪贴板！</p>
+                    <p id="expireInfo" class="expire-info">文本内容将在7天后过期</p>
+                </div>
+                <div id="file-container" style="display: none;">
+                    <p id="fileMessage">文件已准备好下载</p>
+                    <button id="downloadBtn" class="download-btn">下载文件</button>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -107,39 +146,40 @@
         document.addEventListener('DOMContentLoaded', function() {
             const loadingElement = document.getElementById('loading');
             const errorElement = document.getElementById('error');
+            const titleElement = document.getElementById('title');
+            const textContainer = document.getElementById('text-container');
+            const fileContainer = document.getElementById('file-container');
             const textContentElement = document.getElementById('textContent');
             const copyBtn = document.getElementById('copyBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
             const successMessage = document.getElementById('successMessage');
             
-            // 从URL获取ID参数
+            // 从URL获取参数
             const urlParams = new URLSearchParams(window.location.search);
-            const id = urlParams.get('id');
+            const id = urlParams.get('t');
+            const fileId = urlParams.get('f');
             
-            if (!id) {
-                showError('未找到有效的ID参数');
-                return;
+            if (id) {
+                // 处理文本内容
+                titleElement.textContent = '文本内容';
+                fetchTextContent(id);
+                
+                // 为复制按钮添加点击事件
+                copyBtn.addEventListener('click', function() {
+                    const text = textContentElement.textContent;
+                    copyToClipboard(text);
+                });
+            } else if (fileId) {
+                // 处理文件下载
+                titleElement.textContent = '文件下载';
+                handleFileDownload(fileId);
+            } else {
+                showError('无效的请求参数');
             }
-            
-            // 获取文本内容
-            fetchTextContent(id);
-            
-            // 为复制按钮添加点击事件
-            copyBtn.addEventListener('click', function() {
-                const text = textContentElement.textContent;
-                copyToClipboard(text);
-            });
             
             // 获取文本内容的函数
             function fetchTextContent(id) {
-                // 获取当前域名和端口
-                const protocol = window.location.protocol;
-                const hostname = window.location.hostname;
-                const port = '3000'; // 使用服务器端口
-                
-                // 构建API URL
-                const apiUrl = `${protocol}//${hostname}:${port}/api/text/${id}`;
-                
-                fetch(apiUrl)
+                fetch(`/api/text/${id}`)
                     .then(response => {
                         if (!response.ok) {
                             return response.json().then(data => {
@@ -152,12 +192,54 @@
                         if (data.text) {
                             // 显示文本内容
                             textContentElement.textContent = data.text;
-                            textContentElement.style.display = 'block';
-                            copyBtn.style.display = 'block';
                             loadingElement.style.display = 'none';
+                            textContainer.style.display = 'block';
                         } else {
                             showError('获取的文本内容为空');
                         }
+                    })
+                    .catch(error => {
+                        showError(error.message);
+                    });
+            }
+            
+            // 处理文件下载的函数
+            function handleFileDownload(fileId) {
+                loadingElement.style.display = 'none';
+                fileContainer.style.display = 'block';
+                
+                // 从URL获取原始文件名
+                const originalFilename = urlParams.get('filename') || 'file';
+                
+                // 为下载按钮添加点击事件
+                downloadBtn.addEventListener('click', function() {
+                    downloadFile(fileId, originalFilename);
+                });
+                
+                // 自动触发下载（仅在非移动设备上）
+                if (!isMobileDevice()) {
+                    downloadFile(fileId, originalFilename);
+                }
+            }
+            
+            // 下载文件的函数
+            function downloadFile(fileId, filename) {
+                fetch(`/api/download/${fileId}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('文件不存在或已过期');
+                        }
+                        return response.blob();
+                    })
+                    .then(blob => {
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = filename;
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        document.body.removeChild(a);
                     })
                     .catch(error => {
                         showError(error.message);
@@ -236,6 +318,11 @@
                     copyBtn.style.backgroundColor = '#1890ff';
                     successMessage.style.display = 'none';
                 }, 3000);
+            }
+            
+            // 检测是否为移动设备
+            function isMobileDevice() {
+                return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             }
         });
     </script>

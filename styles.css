@@ -14,6 +14,21 @@ body {
     padding: 20px;
 }
 
+.split-layout {
+    display: flex;
+    width: 100%;
+    gap: 20px;
+}
+
+.split-panel {
+    flex: 1;
+    display: none;
+}
+
+.split-panel.active {
+    display: block;
+}
+
 .container {
     width: 100%;
     max-width: 500px;
@@ -67,6 +82,73 @@ button {
 
 button:hover {
     background-color: #40a9ff;
+}
+
+.file-upload {
+    margin-bottom: 25px;
+}
+
+.file-upload-label {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background-color: #f0f0f0;
+    color: #666;
+    border: 1px dashed #ddd;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    margin-bottom: 15px;
+}
+
+.file-upload-label:hover {
+    background-color: #e0e0e0;
+}
+
+.file-upload-input {
+    display: none;
+}
+
+.upload-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #52c41a;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.upload-btn:hover {
+    background-color: #73d13d;
+}
+
+.tab-switcher {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.tab-btn {
+    padding: 10px 20px;
+    background-color: #e0e0e0;
+    color: #666;
+    border: none;
+    border-radius: 4px;
+    margin: 0 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.tab-btn:hover {
+    background-color: #d0d0d0;
+}
+
+.tab-btn.active {
+    background-color: #1890ff;
+    color: white;
 }
 
 .qrcode-container {
