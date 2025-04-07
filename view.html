@@ -136,7 +136,7 @@
                 </div>
                 <div id="file-container" style="display: none;">
                     <p id="fileMessage">文件已准备好下载</p>
-                    <button id="downloadBtn" class="download-btn">下载文件</button>
+.                    <button id="downloadBtn" class="download-btn">下载文件</button>
                 </div>
             </div>
         </div>
@@ -158,6 +158,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             const id = urlParams.get('t');
             const fileId = urlParams.get('f');
+            const urlFilename = urlParams.get('filename');
             
             if (id) {
                 // 处理文本内容
@@ -205,33 +206,82 @@
             
             // 处理文件下载的函数
             function handleFileDownload(fileId) {
+                // 显示文件下载按钮
                 loadingElement.style.display = 'none';
                 fileContainer.style.display = 'block';
                 
-                // 从URL获取原始文件名
-                const originalFilename = urlParams.get('filename') || 'file';
+                // 检查URL中是否已有文件名，如果没有则从API获取
+                const urlFilename = urlParams.get('filename');
+                if (urlFilename) {
+                    // 如果URL中有文件名，直接使用
+                    document.getElementById('fileMessage').textContent = `文件 ${decodeURIComponent(urlFilename)} 已准备好下载`;
+                } else {
+                    // 获取文件信息以显示正确的文件名
+                    fetch(`/api/file-info/${fileId}`)
+                        .then(response => {
+                            if (!response.ok) {
+                                return response.json().then(data => {
+                                    throw new Error(data.error || '获取文件信息失败');
+                                });
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data.filename) {
+                                document.getElementById('fileMessage').textContent = `文件 ${data.filename} 已准备好下载`;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('获取文件信息失败:', error);
+                        });
+                }
                 
                 // 为下载按钮添加点击事件
                 downloadBtn.addEventListener('click', function() {
-                    downloadFile(fileId, originalFilename);
+                    downloadFile(fileId);
                 });
                 
                 // 自动触发下载（仅在非移动设备上）
                 if (!isMobileDevice()) {
-                    downloadFile(fileId, originalFilename);
+                    downloadFile(fileId);
                 }
             }
             
             // 下载文件的函数
-            function downloadFile(fileId, filename) {
+            function downloadFile(fileId) {
                 fetch(`/api/download/${fileId}`)
                     .then(response => {
                         if (!response.ok) {
                             throw new Error('文件不存在或已过期');
                         }
-                        return response.blob();
+                        // 尝试从Content-Disposition头获取文件名
+                        const contentDisposition = response.headers.get('Content-Disposition');
+                        let serverFilename = '下载文件';
+                        
+                        if (contentDisposition) {
+                            // 从Content-Disposition头解析文件名
+                            // 修复正则表达式以正确匹配filename="文件名.扩展名"格式
+                            const filenameRegex = /filename="([^"]*)"/i;
+                            const matches = contentDisposition.match(filenameRegex);
+                            
+                            if (matches && matches[1]) {
+                                // 解码URL编码的文件名
+                                try {
+                                    serverFilename = decodeURIComponent(matches[1]);
+                                } catch (e) {
+                                    console.error('解码文件名失败:', e);
+                                }
+                            }
+                        }
+                        
+                        // 如果没有从Content-Disposition获取到文件名，尝试从URL参数获取
+                        if (serverFilename === '下载文件' && urlFilename) {
+                            serverFilename = decodeURIComponent(urlFilename);
+                        }
+                        
+                        return response.blob().then(blob => ({ blob, filename: serverFilename }));
                     })
-                    .then(blob => {
+                    .then(({ blob, filename }) => {
                         const url = window.URL.createObjectURL(blob);
                         const a = document.createElement('a');
                         a.href = url;

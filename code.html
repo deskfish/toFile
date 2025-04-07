@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>取件码下载</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .code-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 15px;
+            text-align: center;
+            letter-spacing: 5px;
+        }
+        
+        .code-input:focus {
+            border-color: #1890ff;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #1890ff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .submit-btn:hover {
+            background-color: #40a9ff;
+        }
+        
+        .error-message {
+            color: #f5222d;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>文件取件</h1>
+            <p class="description">输入4位数字取件码，下载您的文件</p>
+            
+            <div class="input-group">
+                <input type="text" id="codeInput" class="code-input" placeholder="请输入4位取件码" maxlength="4" pattern="[0-9]{4}" inputmode="numeric">
+                <button id="submitBtn" class="submit-btn">查询文件</button>
+                <p id="errorMessage" class="error-message">取件码不存在或已过期</p>
+                <a href="index.html" class="return-link" style="display: block; margin-top: 15px; color: #1890ff; text-decoration: none;">返回上传页面</a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const codeInput = document.getElementById('codeInput');
+            const submitBtn = document.getElementById('submitBtn');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            // 限制只能输入数字
+            codeInput.addEventListener('input', function(e) {
+                this.value = this.value.replace(/[^0-9]/g, '');
+            });
+            
+            submitBtn.addEventListener('click', function() {
+                const code = codeInput.value.trim();
+                
+                if (!code || code.length !== 4) {
+                    errorMessage.textContent = '请输入4位数字取件码';
+                    errorMessage.style.display = 'block';
+                    return;
+                }
+                
+                // 发送请求验证取件码
+                fetch(`/api/verify-code/${code}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(data => {
+                                throw new Error(data.error || '取件码不存在或已过期');
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.fileId) {
+                            // 重定向到文件下载页面，同时传递原始文件名
+                            const redirectUrl = data.filename 
+                                ? `view.html?f=${data.fileId}&filename=${encodeURIComponent(data.filename)}`
+                                : `view.html?f=${data.fileId}`;
+                            window.location.href = redirectUrl;
+                        } else {
+                            throw new Error('获取文件信息失败');
+                        }
+                    })
+                    .catch(error => {
+                        errorMessage.textContent = error.message;
+                        errorMessage.style.display = 'block';
+                    });
+            });
+        });
+    </script>
+</body>
+</html>

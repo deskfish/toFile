@@ -22,8 +22,12 @@ function switchPanel(panelId) {
     tabBtns.forEach(btn => btn.classList.remove('active'));
     if (panelId === 'text-panel') {
         tabBtns[0].classList.add('active');
+        // 在文本面板中隐藏取件码链接
+        document.querySelector('.code-link').style.display = 'none';
     } else if (panelId === 'file-panel') {
         tabBtns[1].classList.add('active');
+        // 在文件面板中显示取件码链接
+        document.querySelector('.code-link').style.display = 'block';
     }
 }
 
@@ -98,9 +102,13 @@ uploadBtn.addEventListener('click', () => {
         qrcode.clear();
         qrcode.makeCode(url);
         
-        // 显示提示和文件名
+        // 显示提示、文件名和取件码
         scanTip.classList.remove('hidden');
-        scanTip.textContent = `已上传文件: ${file.name}`;
+        if (data.pickupCode) {
+            scanTip.innerHTML = `已上传文件: ${file.name}<br>取件码: <strong>${data.pickupCode}</strong><br>请保存此取件码用于文件下载`;
+        } else {
+            scanTip.textContent = `已上传文件: ${file.name}`;
+        }
     })
     .catch(error => {
         console.error('Error:', error);

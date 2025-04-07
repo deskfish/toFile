@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>文字转二维码工具</title>
+    <title>文字文件二维码工具</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <div class="card">
-            <h1>文字转二维码</h1>
-            <p class="description">输入文字，生成二维码，扫描即可复制</p>
+            <h1>文字文件二维码工具</h1>
+            <p class="description">输入文字或上传文件，生成二维码，方便分享</p>
             
             <div class="tab-switcher">
                 <button class="tab-btn active" onclick="switchPanel('text-panel')">文本输入</button>
@@ -38,6 +38,7 @@
             <div class="qrcode-container">
                 <div id="qrcode"></div>
                 <p id="scanTip" class="hidden">扫描二维码即可复制文字</p>
+                <p class="code-link" style="display: none;"><a href="code.html">使用取件码下载文件</a></p>
             </div>
         </div>
     </div>

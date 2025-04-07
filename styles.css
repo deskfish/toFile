@@ -171,3 +171,18 @@ button:hover {
 .hidden {
     display: none;
 }
+
+.code-link {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.code-link a {
+    color: #1890ff;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.code-link a:hover {
+    text-decoration: underline;
+}
